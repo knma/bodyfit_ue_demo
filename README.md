@@ -4,7 +4,7 @@ Bodyfit client Unreal Engine plugin.
 
 *BodyfitHandler* class and a set of auxiliary structures allow to send body processing requests to Bodyfit server and receive results.
 
-To check if the server is alive, go to its public URL in browser. It should say *Bodyfit is running*.
+To check if the server is alive, go to its public URL in browser. It should say "Bodyfit is running".
 
 *BodyfitHandler::ProcessBody* function takes necessary values from:
 * *BodyfitHandler::URL*: Bodyfit server host
