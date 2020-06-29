@@ -10,6 +10,63 @@
 
 #include "BodyfitHandler.generated.h"
 
+USTRUCT(BlueprintType)
+struct BODYFITPLUGIN_API FSMPLInfo {
+	GENERATED_USTRUCT_BODY()
+	UPROPERTY(BlueprintReadOnly) TMap<FString, int32> Bones = {
+		{"Pelvis", 0},
+		{"LHip", 1},
+		{"RHip", 2},
+		{"Spine1", 3},
+		{"LKnee", 4},
+		{"RKnee", 5},
+		{"Spine2", 6},
+		{"LAnkle", 7},
+		{"RAnkle", 8},
+		{"Chest", 9},
+		{"LFoot", 10},
+		{"RFoot", 11},
+		{"Neck", 12},
+		{"LClavicle", 13},
+		{"RClavicle", 14},
+		{"Head", 15},
+		{"LShoulder", 16},
+		{"RShoulder", 17},
+		{"LElbow", 18},
+		{"RElbow", 19},
+		{"LWrist", 20},
+		{"RWrist", 21},
+		{"LHand", 22},
+		{"RHand", 23}
+	};
+	UPROPERTY(BlueprintReadOnly) TMap<int32, int32> KinematicTree = {
+		{0, -1},
+		{1, 0},
+		{2, 0},
+		{3, 0},
+		{4, 1},
+		{5, 2},
+		{6, 3},
+		{7, 4},
+		{8, 5},
+		{9, 6},
+		{10, 7},
+		{11, 8},
+		{12, 9},
+		{13, 9},
+		{14, 9},
+		{15, 12},
+		{16, 13},
+		{17, 14},
+		{18, 16},
+		{19, 17},
+		{20, 18},
+		{21, 19},
+		{22, 20},
+		{23, 21}
+	};
+	FSMPLInfo() {}
+};
 
 USTRUCT(BlueprintType)
 struct BODYFITPLUGIN_API FBodyProcessingResponse {
