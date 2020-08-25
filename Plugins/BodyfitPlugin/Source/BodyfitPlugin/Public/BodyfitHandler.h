@@ -123,6 +123,8 @@ struct BODYFITPLUGIN_API FBodyProcessingResult {
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") TArray<float> Shape;						// (10,) SMPL shape 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") TMap<FString, float> LinearMeasurements;	// spine, hands, legs length
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") TMap<FString, FBodyLoop> Loops;			// 5 steps for each loop type
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") FVector CameraTranslation;				// (3,) XYZ
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") TArray<FVector> CameraRotation;			// (9,) 3x3 matrix
 
 	FVector GetVectorFromJSONList(const TArray<TSharedPtr<FJsonValue>>& Vals)
 	{
@@ -163,6 +165,24 @@ struct BODYFITPLUGIN_API FBodyProcessingResult {
 		{
 			TArray<TSharedPtr<FJsonValue>> ijoints = joints[i]->AsArray();
 			Joints.Add(GetVectorFromJSONList(ijoints));
+		}
+		TArray<TSharedPtr<FJsonValue>> cam_t = ResultJSON->GetArrayField("cam_T");
+		for (int i = 0; i < cam_t.Num(); i++)
+		{
+			CameraTranslation[i] = cam_t[i]->AsNumber();
+		}
+		TArray<TSharedPtr<FJsonValue>> cam_r = ResultJSON->GetArrayField("cam_R");
+		CameraRotation.Empty();
+		if (cam_r.Num()) {
+			CameraRotation.Add(FVector::ZeroVector);
+			CameraRotation.Add(FVector::ZeroVector);
+			CameraRotation.Add(FVector::ZeroVector);
+		}
+		for (int i = 0; i < cam_r.Num(); i++)
+		{
+			int _i = FMath::FloorToInt(i / 3.0);
+			int _j = i % 3;
+			CameraRotation[_i][_j] = cam_r[i]->AsNumber();
 		}
 		TArray<TSharedPtr<FJsonValue>> shape = ResultJSON->GetArrayField("shape");
 		for (int i = 0; i < shape.Num(); i++)
@@ -215,6 +235,8 @@ struct BODYFITPLUGIN_API FBodyProcessingResult {
 		Shape.Empty();
 		LinearMeasurements.Empty();
 		Loops.Empty();
+		CameraTranslation.Empty();
+		CameraRotation.Empty();
 	}
 
 	void DebugPrint()
@@ -259,6 +281,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit")
 	float Height = 1.75;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit")
+	bool FrontCoarseMode = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit")
+	bool SpinMode = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Bodyfit")
 	FBodyProcessingResult Result;

@@ -30,7 +30,11 @@ bool ABodyfitHandler::ProcessBody()
 	AsyncTask(ENamedThreads::GameThread, [=](){
 		TArray<uint8> Content, FrontImgData, SideImgData;
 		FFileHelper::LoadFileToArray(FrontImgData, *FrontImg);
-		FFileHelper::LoadFileToArray(SideImgData, *SideImg);
+		if (SideImg.Len())
+		{
+			FFileHelper::LoadFileToArray(SideImgData, *SideImg);
+		}
+		
 
 		FString BoundaryLabel = FString(TEXT("e543322540af456f9a3773049ca02529-")) + FString::FromInt(FMath::Rand());
 		FString BoundaryBegin = FString(TEXT("\r\n--")) + BoundaryLabel + FString(TEXT("\r\n"));
@@ -44,7 +48,10 @@ bool ABodyfitHandler::ProcessBody()
 			FString Data = BoundaryBegin;
 			Data += FString(TEXT("Content-Disposition: form-data; name=\"query\"\r\n"));
 			Data += FString(TEXT("Content-Type: application/json\r\n\r\n"));
-			Data += FString("{\"gender\": \"") + Gender + FString("\", \"height\": \"") + FString::SanitizeFloat(Height) + FString("\" }");
+			Data += FString("{");
+			Data += FString("\"gender\": \"") + Gender + FString("\", \"height\": \"") + FString::SanitizeFloat(Height) + FString("\",");
+			Data += FString("\"front_coarse_only\": \"") + FString::FromInt(int(FrontCoarseMode)) + FString("\", \"use_spin\": \"") + FString::FromInt(int(SpinMode)) + FString("\"");
+			Data += FString("}");
 			FTCHARToUTF8 Converted(*Data);
 			Content.Append(reinterpret_cast<const uint8*>(Converted.Get()), Converted.Length());
 		}
@@ -60,7 +67,10 @@ bool ABodyfitHandler::ProcessBody()
 		};
 
 		AddImage(FrontImgData, "front_img", FrontImg);
-		AddImage(SideImgData, "side_img", SideImg);
+		if (SideImg.Len())
+		{
+			AddImage(SideImgData, "side_img", SideImg);
+		}
 
 		{
 			FTCHARToUTF8 Converted(*(FString(TEXT("\r\n")) + BoundaryEnd));
