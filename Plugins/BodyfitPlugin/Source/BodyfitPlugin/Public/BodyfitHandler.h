@@ -117,6 +117,7 @@ struct BODYFITPLUGIN_API FBodyProcessingResult {
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") TArray<FString> PreviewFramesURL;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") FString PreviewVideoURL;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") FString ModelURL;							// .obj model
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") FString AlignedURL;						// .jpg aligned image
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") TArray<FVector> Pose;						// (24, 3) axis-angle
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") TArray<FVector> Joints;					// (24, 3) global space
@@ -124,7 +125,7 @@ struct BODYFITPLUGIN_API FBodyProcessingResult {
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") TMap<FString, float> LinearMeasurements;	// spine, hands, legs length
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") TMap<FString, FBodyLoop> Loops;			// 5 steps for each loop type
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") FVector CameraTranslation;				// (3,) XYZ
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") TArray<FVector> CameraRotation;			// (9,) 3x3 matrix
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") FQuat CameraRotation;						
 
 	FVector GetVectorFromJSONList(const TArray<TSharedPtr<FJsonValue>>& Vals)
 	{
@@ -149,6 +150,7 @@ struct BODYFITPLUGIN_API FBodyProcessingResult {
 
 		PreviewVideoURL = ResultJSON->GetStringField("video");
 		ModelURL = ResultJSON->GetStringField("model");
+		AlignedURL = ResultJSON->GetStringField("aligned");
 		TArray<TSharedPtr<FJsonValue>> frames = ResultJSON->GetArrayField("frames");
 		for (int i = 0; i < frames.Num(); i++)
 		{
@@ -172,17 +174,11 @@ struct BODYFITPLUGIN_API FBodyProcessingResult {
 			CameraTranslation[i] = cam_t[i]->AsNumber();
 		}
 		TArray<TSharedPtr<FJsonValue>> cam_r = ResultJSON->GetArrayField("cam_R");
-		CameraRotation.Empty();
 		if (cam_r.Num()) {
-			CameraRotation.Add(FVector::ZeroVector);
-			CameraRotation.Add(FVector::ZeroVector);
-			CameraRotation.Add(FVector::ZeroVector);
-		}
-		for (int i = 0; i < cam_r.Num(); i++)
-		{
-			int _i = FMath::FloorToInt(i / 3.0);
-			int _j = i % 3;
-			CameraRotation[_i][_j] = cam_r[i]->AsNumber();
+			CameraRotation.X = cam_r[0]->AsNumber();
+			CameraRotation.Y = cam_r[1]->AsNumber();
+			CameraRotation.Z = cam_r[2]->AsNumber();
+			CameraRotation.W = cam_r[3]->AsNumber();
 		}
 		TArray<TSharedPtr<FJsonValue>> shape = ResultJSON->GetArrayField("shape");
 		for (int i = 0; i < shape.Num(); i++)
@@ -235,8 +231,8 @@ struct BODYFITPLUGIN_API FBodyProcessingResult {
 		Shape.Empty();
 		LinearMeasurements.Empty();
 		Loops.Empty();
-		CameraTranslation.Empty();
-		CameraRotation.Empty();
+		CameraTranslation = FVector::ZeroVector;
+		CameraRotation = FQuat::Identity;
 	}
 
 	void DebugPrint()
