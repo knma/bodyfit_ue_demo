@@ -121,11 +121,14 @@ struct BODYFITPLUGIN_API FBodyProcessingResult {
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") TArray<FVector> Pose;						// (24, 3) axis-angle
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") TArray<FVector> Joints;					// (24, 3) global space
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") TArray<FVector2D> Keypoints;				// (17, 2) global space
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") TArray<float> Shape;						// (10,) SMPL shape 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") TMap<FString, float> LinearMeasurements;	// spine, hands, legs length
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") TMap<FString, FBodyLoop> Loops;			// 5 steps for each loop type
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") FVector CameraTranslation;				// (3,) XYZ
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") FQuat CameraRotation;						
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") FQuat CameraRotation;	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") FVector2D AlignedCenter;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bodyfit") float AlignedAngle;
 
 	FVector GetVectorFromJSONList(const TArray<TSharedPtr<FJsonValue>>& Vals)
 	{
@@ -167,6 +170,22 @@ struct BODYFITPLUGIN_API FBodyProcessingResult {
 		{
 			TArray<TSharedPtr<FJsonValue>> ijoints = joints[i]->AsArray();
 			Joints.Add(GetVectorFromJSONList(ijoints));
+		}
+		TArray<TSharedPtr<FJsonValue>> keypoints = ResultJSON->GetArrayField("keypoints");
+		for (int i = 0; i < keypoints.Num(); i++)
+		{
+			TArray<TSharedPtr<FJsonValue>> ikeypoints = keypoints[i]->AsArray();
+			Keypoints.Add(GetVector2DFromJSONList(ikeypoints));
+		}
+		TArray<TSharedPtr<FJsonValue>> aligned_center = ResultJSON->GetArrayField("aligned_center");
+		for (int i = 0; i < aligned_center.Num(); i++)
+		{
+			AlignedCenter[i] = aligned_center[i]->AsNumber();
+		}
+		TArray<TSharedPtr<FJsonValue>> aligned_angle = ResultJSON->GetArrayField("aligned_angle");
+		for (int i = 0; i < aligned_angle.Num(); i++)
+		{
+			AlignedAngle = aligned_angle[i]->AsNumber();
 		}
 		TArray<TSharedPtr<FJsonValue>> cam_t = ResultJSON->GetArrayField("cam_T");
 		for (int i = 0; i < cam_t.Num(); i++)
@@ -233,6 +252,8 @@ struct BODYFITPLUGIN_API FBodyProcessingResult {
 		Loops.Empty();
 		CameraTranslation = FVector::ZeroVector;
 		CameraRotation = FQuat::Identity;
+		AlignedCenter = FVector2D::ZeroVector;
+		AlignedAngle = 0;
 	}
 
 	void DebugPrint()
